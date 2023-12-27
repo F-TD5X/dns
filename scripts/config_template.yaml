@@ -1,0 +1,140 @@
+log:
+  level: info
+  production: true
+plugins:
+  - tag: handle_ecs
+    type: ecs_handler
+    args:
+      forward: true
+      send: true
+      mask4: 32
+      mask6: 48
+  - tag: cn_domain
+    type: domain_set
+    args:
+      files:
+        - "./rules/china_domain_list.txt"
+        - "./rules/cdn_domain_list.txt"
+  - tag: cn_ip
+    type: ip_set
+    args:
+      files:
+        - "./rules/china_ip_list.txt"
+  - tag: cf_ip
+    type: ip_set
+    args:
+      ips:
+        - 1.1.1.1
+  - tag: global_dns
+    type: forward
+    args:
+      concurrent: 2
+      upstreams:
+        - tag: "Google DOT"
+          addr: 'tls://dns.google'
+          dial_addr: 8.8.8.8
+          enable_pipeline: true
+        - tag: "Google DOT2"
+          addr: "tls://dns.google"
+          dial_addr: 8.8.4.4
+          enable_pipeline: true
+  - tag: cn_dns
+    type: forward
+    args:
+      concurrent: 3
+      upstreams:
+        - tag: "DNSPod"
+          addr: 'tls://dot.pub'
+          bootstrap: "223.5.5.5"
+          enable_pipeline: true
+  - tag: blacklist
+    type: ip_set
+    args:
+      ips:
+        - 117.72.224.130/32
+        - 117.72.224.129/32
+  - tag: cloudflare_ip
+    type: ip_set
+    args:
+      ips:
+        - 103.21.244.0/22
+        - 103.22.200.0/22
+        - 103.31.4.0/22
+        - 104.16.0.0/13
+        - 104.24.0.0/14
+        - 108.162.192.0/18
+        - 131.0.72.0/22
+        - 141.101.64.0/18
+        - 162.158.0.0/15
+        - 172.64.0.0/13
+        - 173.245.48.0/20
+        - 188.114.96.0/20
+        - 190.93.240.0/20
+        - 197.234.240.0/22
+        - 198.41.128.0/17
+        - 2400:cb00::/32
+        - 2606:4700::/32
+        - 2803:f800::/32
+        - 2405:b500::/32
+        - 2405:8100::/32
+        - 2a06:98c0::/29
+        - 2c0f:f248::/32
+  - tag: cloudflare
+    type: sequence
+    args:
+      - matches:
+        - "resp_ip $cloudflare_ip"
+        - "qtype 1"
+        exec: "black_hole $cf_ip4_prefer"
+      - matches:
+        - "resp_ip $cloudflare_ip"
+        - "qtype 28"
+        exec: "black_hole $cf_ip6_prefer" 
+  - tag: cn_resolver
+    type: sequence
+    args:
+      - exec: $cn_dns
+      - matches:
+        - "resp_ip $blacklist"
+        exec: drop_resp
+      - exec: query_summary $cn_dns
+      - exec: accept
+  - tag: global_resolver
+    type: sequence
+    args:
+      - exec: $global_dns
+      - matches:
+        - "resp_ip $blacklist"
+        exec: drop_resp
+      - exec: query_summary $global_dns
+  - tag: fallback
+    type: fallback
+    args:
+      primary: cn_resolver
+      secondary: global_resolver
+      threshold: 20000
+      always_standby: true
+  - tag: main
+    type: sequence
+    args:
+      - exec: $handle_ecs
+      - exec: forward_edns0opt 10 15
+      - matches:
+        - qname $cn_domain
+        exec: $cn_resolver
+      - matches: has_resp
+        exec: accept
+      - exec: $global_resolver
+      - matches:
+        - resp_ip $cn_ip
+        exec: $cn_resolver
+      - matches: 
+        - "!has_resp"
+        exec: $fallback
+      - exec: $cloudflare
+  - tag: server
+    type: "udp_server"
+    args:
+      entry: main
+      listen: "[::]:53"
+
