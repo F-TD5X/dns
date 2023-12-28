@@ -1,10 +1,12 @@
+ARG TARGETPLATFORM
 FROM --platform=${TARGETPLATFORM} golang:alpine as builder
 ARG CGO_ENABLED=0
 ARG TAG 
 ARG REPOSITORY
 
 WORKDIR /root
-RUN git clone https://github.com/${REPOSITORY} mosdns \
+RUN apk add git && \
+    git clone https://github.com/${REPOSITORY} mosdns \
     && cd mosdns \
     && git fetch --all --tags \
     && git checkout tags/${TAG} \
@@ -20,4 +22,4 @@ COPY ./scripts /etc/mosdns/
 COPY entrypoint.sh /
 VOLUME /etc/mosdns
 EXPOSE 53/udp 53/tcp
-CMD ['/entrypoint.sh']
+CMD ["/entrypoint.sh"]
