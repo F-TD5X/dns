@@ -1,7 +1,23 @@
-FROM alpine:latest
+FROM --platform=${TARGETPLATFORM} golang:alpine as builder
+ARG CGO_ENABLED=0
+ARG TAG 
+ARG REPOSITORY
 
-ARG TARGETPLATFORM
-RUN apk --no-cache add curl jq && cd /tmp && curl -s -o "mosdns.zip" "https://github.com/IrineSistiana/mosdns/releases/download/v5.3.1/mosdns-linux-$TARGETPLATFORM.zip" && unzip mosdns.zip && chmod +x ./mosdns && mv mosdns /usr/bin && rm -rf /tmp/* && mkdir /app 
-WORKDIR /app
-COPY * /app
+WORKDIR /root
+RUN git clone https://github.com/${REPOSITORY} mosdns \
+    && cd mosdns \
+    && git fetch --all --tags \
+    && git checkout tags/${TAG} \
+    && go build -ldflags "-s -w -X main.version=${TAG}" -trimpath -o mosdns
 
+FROM --platform=${TARGETPLATFORM} alpine:latest
+LABEL maintainer="F-TD5X <mjikop1231@gmail.com>"
+
+COPY --from=builder /root/mosdns/mosdns /usr/bin
+RUN apk --no-cache add curl jq ca-certificates \
+    && mkdir /etc/mosdns
+COPY ./scripts /etc/mosdns/
+COPY entrypoint.sh /
+VOLUME /etc/mosdns
+EXPOSE 53/udp 53/tcp
+CMD ['/entrypoint.sh']

@@ -1,0 +1,24 @@
+plugins:
+  - tag: cn_domain
+    type: domain_set
+    args:
+      files:
+        - "./rules/china_domain_list.txt"
+        - "./rules/cdn_domain_list.txt"
+  - tag: cn_ip
+    type: ip_set
+    args:
+      files:
+        - "./rules/china_ip_list.txt"
+  - tag: blacklist
+    type: ip_set
+    args:
+      files:
+        - ./rules/ip_blacklist.txt
+
+  - tag: cloudflare_ip
+    type: ip_set
+    args:
+      files:
+        - ./rules/cf_ip4.txt
+        - ./rules/cf_ip6.txt

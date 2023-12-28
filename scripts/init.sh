@@ -35,12 +35,12 @@ curl -s -o "$ruleset_dir/cf_ip6.txt" "https://www.cloudflare.com/ips-v6"
 echo "Set best cloudflare ip"
 cf_ip4_prefer=$(curl -s "https://monitor.gacjie.cn/api/ajax/get_cloud_flare_v4?page=1&limit=10" | jq -r '.data | map(.address) | join(" ")')
 cf_ip6_prefer=$(curl -s "https://monitor.gacjie.cn/api/ajax/get_cloud_flare_v6?page=1&limit=10" | jq -r '.data | map(.address) | join(" ")')
-cp $base/config_template.yaml $base/../config.yaml
+cp $base/configs/* $base/../
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-	sed -i "s/\$cf_ip4_prefer/$cf_ip4_prefer/" $base/../config.yaml
-	sed -i "s/\$cf_ip6_prefer/$cf_ip6_prefer/" $base/../config.yaml
+	sed -i "s/\$cf_ip4_prefer/$cf_ip4_prefer/" $base/../sequence.yaml
+	sed -i "s/\$cf_ip6_prefer/$cf_ip6_prefer/" $base/../sequence.yaml
 elif [[ "$OSTYPE" == "darwin"* ]]; then
-	sed -i.bak "s/\$cf_ip4_prefer/$cf_ip4_prefer/" $base/../config.yaml
-	sed -i.bak "s/\$cf_ip6_prefer/$cf_ip6_prefer/" $base/../config.yaml
-	rm config.yaml.bak
+	sed -i.bak "s/\$cf_ip4_prefer/$cf_ip4_prefer/" $base/../sequence.yaml
+	sed -i.bak "s/\$cf_ip6_prefer/$cf_ip6_prefer/" $base/../sequence.yaml
+	rm sequence.yaml.bak
 fi
