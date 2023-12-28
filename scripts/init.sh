@@ -32,7 +32,7 @@ echo "Downloading Cloudflare IP set"
 cf_ip4=$(curl -s "https://www.cloudflare.com/ips-v4")
 cf_ip6=$(curl -s "https://www.cloudflare.com/ips-v6")
 
-if [[ "<html>" == *"$cf_ip4"* ]];then
+if [[ "html" == *"$cf_ip4"* ]];then
 	echo '173.245.48.0/20
 103.21.244.0/22
 103.22.200.0/22
@@ -52,7 +52,7 @@ else
 	echo "$cf_ip4" > "$ruleset_dir/cf_ip4.txt"
 fi
 
-if [[ "<html>" == *"$cf_ip6"* ]];then
+if [[ "html" == *"$cf_ip6"* ]];then
 	echo '2400:cb00::/32
 2606:4700::/32
 2803:f800::/32
