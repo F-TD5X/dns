@@ -1,4 +1,3 @@
-ARG TARGETPLATFORM
 FROM --platform=${TARGETPLATFORM} golang:alpine as builder
 ARG CGO_ENABLED=0
 ARG TAG 
