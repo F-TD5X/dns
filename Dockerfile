@@ -18,7 +18,7 @@ LABEL maintainer="F-TD5X <mjikop1231@gmail.com>"
 COPY --from=builder /root/mosdns/mosdns /usr/bin
 RUN apk --no-cache add curl jq ca-certificates \
     && mkdir /etc/mosdns
-COPY ./scripts /etc/mosdns/
+COPY ./scripts /etc/mosdns/scripts
 COPY entrypoint.sh /
 VOLUME /etc/mosdns
 EXPOSE 53/udp 53/tcp
