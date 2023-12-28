@@ -69,7 +69,7 @@ echo "Set best cloudflare ip"
 cf_ip4_prefer=$(curl -s "https://monitor.gacjie.cn/api/ajax/get_cloud_flare_v4?page=1&limit=10" | jq -r '.data | map(.address) | join(" ")')
 cf_ip6_prefer=$(curl -s "https://monitor.gacjie.cn/api/ajax/get_cloud_flare_v6?page=1&limit=10" | jq -r '.data | map(.address) | join(" ")')
 cp $base/configs/* $base/../
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+if [[ "$OSTYPE" == "linux-gnu"* ]] || [ -z "$OSTYPE" ]; then
 	sed -i "s/\$cf_ip4_prefer/$cf_ip4_prefer/" $base/../sequence.yaml
 	sed -i "s/\$cf_ip6_prefer/$cf_ip6_prefer/" $base/../sequence.yaml
 elif [[ "$OSTYPE" == "darwin"* ]]; then
