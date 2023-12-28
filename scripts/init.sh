@@ -29,8 +29,41 @@ done
 
 
 echo "Downloading Cloudflare IP set"
-curl -s -o "$ruleset_dir/cf_ip4.txt" "https://www.cloudflare.com/ips-v4"
-curl -s -o "$ruleset_dir/cf_ip6.txt" "https://www.cloudflare.com/ips-v6"
+cf_ip4=$(curl -s "https://www.cloudflare.com/ips-v4")
+cf_ip6=$(curl -s "https://www.cloudflare.com/ips-v6")
+
+if [[ "<html>" == *"$cf_ip4"* ]];then
+	echo '173.245.48.0/20
+103.21.244.0/22
+103.22.200.0/22
+103.31.4.0/22
+141.101.64.0/18
+108.162.192.0/18
+190.93.240.0/20
+188.114.96.0/20
+197.234.240.0/22
+198.41.128.0/17
+162.158.0.0/15
+104.16.0.0/13
+104.24.0.0/14
+172.64.0.0/13
+131.0.72.0/22' > "$ruleset_dir/cf_ip4.txt"
+else
+	echo "$cf_ip4" > "$ruleset_dir/cf_ip4.txt"
+fi
+
+if [[ "<html>" == *"$cf_ip6"* ]];then
+	echo '2400:cb00::/32
+2606:4700::/32
+2803:f800::/32
+2405:b500::/32
+2405:8100::/32
+2a06:98c0::/29
+2c0f:f248::/32' > "$ruleset_dir/cf_ip6.txt"
+else
+	echo "$cf_ip6" > "$ruleset_dir/cf_ip6.txt"
+fi
+
 
 echo "Set best cloudflare ip"
 cf_ip4_prefer=$(curl -s "https://monitor.gacjie.cn/api/ajax/get_cloud_flare_v4?page=1&limit=10" | jq -r '.data | map(.address) | join(" ")')
