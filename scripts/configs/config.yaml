@@ -1,0 +1,14 @@
+log:
+  level: info
+  production: true
+include:
+  - dataset.yaml
+  - forwarder.yaml
+  - sequence.yaml
+plugins:
+  - tag: server
+    type: "udp_server"
+    args:
+      entry: main
+      listen: "[::]:53"
+
